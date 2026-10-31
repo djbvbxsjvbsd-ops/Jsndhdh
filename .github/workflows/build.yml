@@ -8,23 +8,24 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - name: Descompactar
-        run: unzip -q valdoria-saga-do-enzo.zip -d projeto
+
+      - name: Extrair projeto
+        run: unzip -q valdorianrpg_v2_completo.zip -d projeto
+
       - uses: actions/setup-java@v4
         with:
           distribution: temurin
           java-version: 17
+
       - uses: gradle/actions/setup-gradle@v3
         with:
           gradle-version: 8.1.1
+
       - name: Build
-        run: |
-          DIR=$(dirname "$(find projeto -name build.gradle | head -1)")
-          cd "$DIR"
-          gradle build --no-daemon
-          mkdir -p "$GITHUB_WORKSPACE/out"
-          cp build/libs/*.jar "$GITHUB_WORKSPACE/out/"
+        working-directory: projeto/valdoria_final
+        run: gradle build --no-daemon
+
       - uses: actions/upload-artifact@v4
         with:
           name: valdorianrpg-jar
-          path: out/*.jar
+          path: projeto/valdoria_final/build/libs/*.jar
