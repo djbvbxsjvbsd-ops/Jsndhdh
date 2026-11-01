@@ -1,22 +1,37 @@
 name: Build APK
 on:
   push:
-    branches: [main, master]
   workflow_dispatch:
 jobs:
   build:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+
+      - name: Extrair ZIP
+        run: |
+          ZIP=$(find . -maxdepth 3 -iname 'EggMindAI*.zip' | head -n1)
+          echo "ZIP: $ZIP"
+          mkdir -p /tmp/proj
+          unzip -q -o "$ZIP" -d /tmp/proj
+          S=$(find /tmp/proj -name settings.gradle.kts | head -n1)
+          echo "PROJ=$(dirname "$S")" >> $GITHUB_ENV
+
       - uses: actions/setup-java@v4
         with:
           distribution: temurin
           java-version: 17
+
       - uses: gradle/actions/setup-gradle@v4
         with:
           gradle-version: "8.7"
-      - run: gradle assembleDebug --no-daemon
+
+      - name: Compilar
+        run: |
+          cd "$PROJ"
+          gradle assembleDebug --no-daemon
+
       - uses: actions/upload-artifact@v4
         with:
           name: EggMindAI-debug-apk
-          path: app/build/outputs/apk/debug/*.apk
+          path: ${{ env.PROJ }}/app/build/outputs/apk/debug/*.apk
